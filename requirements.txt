@@ -1,0 +1,11 @@
+pandas
+numpy
+torch
+scikit-learn
+requests
+transformers
+snscrape
+tqdm
+python-dotenv
+yfinance
+nltk
