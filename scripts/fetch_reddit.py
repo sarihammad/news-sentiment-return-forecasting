@@ -1,53 +1,75 @@
 """
-Fetches Reddit posts from subreddits like r/stocks or r/investing using Pushshift API.
+Fetches Reddit posts from subreddits like r/stocks or r/investing using the Reddit API.
 
 Includes:
 - Historical post fetching by keyword/ticker
 - Subreddit filtering
-- Date range support
+- Date range support (limited by Reddit API)
 - JSON saving to raw/ directory
 """
 
 import os
-import requests
 import json
+import requests
 from datetime import datetime, timedelta
 from typing import List
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SAVE_DIR = "data/raw/reddit"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-PUSHSHIFT_URL = "https://api.pushshift.io/reddit/search/submission"
+CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
+CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")
+USER_AGENT = "news-sentiment-script/0.1"
 
-def fetch_posts_for_day(query: str, date: str, subreddit: str = "stocks") -> List[dict]:
+def get_access_token():
+    auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+    data = {
+        "grant_type": "client_credentials"
+    }
+    headers = {"User-Agent": USER_AGENT}
+    response = requests.post("https://www.reddit.com/api/v1/access_token", auth=auth, data=data, headers=headers)
+    response.raise_for_status()
+    return response.json()["access_token"]
+
+def fetch_posts_for_day(query: str, date: str, subreddit: str = "stocks", limit: int = 100) -> List[dict]:
     """
-    Fetches Reddit posts from a specific day and subreddit.
+    Fetches Reddit posts from a specific day using Reddit API.
 
     Args:
         query (str): Keyword or ticker to search for.
         date (str): Date string (YYYY-MM-DD).
         subreddit (str): Subreddit to search in.
+        limit (int): Maximum number of results to return.
 
     Returns:
         List[dict]: List of Reddit post dicts.
     """
+    token = get_access_token()
+    headers = {"Authorization": f"bearer {token}", "User-Agent": USER_AGENT}
+
     after = int(datetime.strptime(date, "%Y-%m-%d").timestamp())
     before = int((datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1)).timestamp())
 
+    url = f"https://oauth.reddit.com/r/{subreddit}/search"
     params = {
         "q": query,
-        "subreddit": subreddit,
+        "sort": "top",
+        "restrict_sr": "true",
+        "limit": str(limit),
         "after": after,
         "before": before,
-        "size": 100,
-        "sort": "desc",
-        "sort_type": "score"
+        "t": "day"
     }
 
-    response = requests.get(PUSHSHIFT_URL, params=params)
+    response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
-        raise Exception(f"Pushshift error: {response.status_code} {response.text}")
-    return response.json().get("data", [])
+        raise Exception(f"[Reddit API] Error: {response.status_code} - {response.text}")
+
+    posts = response.json().get("data", {}).get("children", [])
+    return [p["data"] for p in posts]
 
 def save_posts(posts: List[dict], date: str, query: str):
     """
