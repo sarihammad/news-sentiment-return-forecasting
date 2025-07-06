@@ -8,10 +8,7 @@ Investigates whether financial news sentiment can be used to predict short-term 
 - Computes daily sentiment scores using rule-based and transformer-based models (VADER and FinBERT).
 - Builds supervised datasets aligning sentiment with future returns.
 - Trains Linear Regression and XGBoost models for return forecasting.
-- Evaluates predictive performance using:
-  - Mean Squared Error (MSE)
-  - Information Coefficient (Spearman Rank)
-  - Directional Accuracy
+- Evaluates predictive performance using Mean Squared Error (MSE), Information Coefficient (Spearman Rank) and Directional Accuracy.
 
 ## How to Run
 
