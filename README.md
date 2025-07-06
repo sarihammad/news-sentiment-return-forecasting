@@ -4,14 +4,14 @@ Investigates whether financial news sentiment can be used to predict short-term 
 
 ## Features
 
-- Collects historical news articles using NewsAPI and snscrape (for Twitter).
-- Computes daily sentiment scores using pre-trained transformer models.
+- Collects historical news articles using NewsAPI, Twitter API and Reddit API.
+- Computes daily sentiment scores using rule-based and transformer-based models (VADER and FinBERT).
 - Builds supervised datasets aligning sentiment with future returns.
-- Trains baseline models (Linear Regression, XGBoost) for return forecasting.
+- Trains Linear Regression and XGBoost models for return forecasting.
 - Evaluates predictive performance using:
-- Mean Squared Error (MSE)
-- Information Coefficient (Spearman Rank)
-- Directional Accuracy
+  - Mean Squared Error (MSE)
+  - Information Coefficient (Spearman Rank)
+  - Directional Accuracy
 
 ## How to Run
 
